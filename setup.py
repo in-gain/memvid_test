@@ -29,8 +29,8 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "qrcode[pil]>=7.3",
-        "opencv-python>=4.5.0",
-        "opencv-contrib-python>=4.5.0",  # Includes QR decoder
+        "opencv-contrib-python-headless>=4.5.0",  # Includes QR decoder
+        "pyzbar>=0.1.9",
         "sentence-transformers>=2.2.0",
         "numpy>=1.21.0,<2.0.0",
         "tqdm>=4.50.0",
@@ -47,9 +47,9 @@ setup(
             "flake8>=6.0.0",
         ],
         "llm": [
-            "openai>=1.0.0",
+            "openai>=1.84.0",
             "google-generativeai>=0.8.0",
-            "anthropic>=0.52.0",
+            "anthropic>=0.52.2",
         ],
         "epub": [
             "beautifulsoup4>=4.0.0",
