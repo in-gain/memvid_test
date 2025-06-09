@@ -58,6 +58,14 @@ https://github.com/user-attachments/assets/ec550e93-e9c4-459f-a8a1-46e122b5851e
 pip install memvid
 ```
 
+This project uses the headless build of OpenCV to keep the installation
+lightweight. If you require GUI features you can install `opencv-python`
+instead. For improved QR code decoding install `pyzbar`:
+
+```bash
+pip install pyzbar
+```
+
 ### For PDF Support
 ```bash
 pip install memvid PyPDF2
@@ -83,6 +91,15 @@ pip install memvid
 
 # For PDF support:
 pip install PyPDF2
+
+# Optional QR decoding fallback
+pip install pyzbar
+
+# Optional EPUB handling
+pip install beautifulsoup4 ebooklib
+
+# Optional LLM providers
+pip install openai anthropic google-generativeai
 ```
 
 ## 🎯 Quick Start
