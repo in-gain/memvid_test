@@ -321,6 +321,16 @@ pytest --cov=memvid tests/
 black memvid/
 ```
 
+### Running Unit Tests
+
+The `decode_qr` helper used in the test suite depends on the system
+library `libzbar0`. Ensure it is installed before running tests:
+
+```bash
+sudo apt-get install libzbar0    # Ubuntu/Debian
+brew install zbar                # macOS
+```
+
 ## 🆚 Comparison with Traditional Solutions
 
 | Feature | Memvid | Vector DBs | Traditional DBs |
