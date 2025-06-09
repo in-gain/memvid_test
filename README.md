@@ -87,6 +87,18 @@ pip install PyPDF2
 
 ## 🎯 Quick Start
 
+Before running the examples below, ensure the required packages are installed:
+
+```bash
+pip install -r requirements.txt  # or `pip install memvid`
+```
+
+You can verify the installation with:
+
+```bash
+python -c "import memvid; print('memvid version', memvid.__version__)"
+```
+
 ### Basic Usage
 ```python
 from memvid import MemvidEncoder, MemvidChat
