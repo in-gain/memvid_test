@@ -5,14 +5,30 @@ Shared utility functions for Memvid
 import io
 import json
 import qrcode
-import cv2
-import numpy as np
+try:
+    import cv2
+except ImportError as e:
+    raise ImportError(
+        "OpenCV (cv2) is required for image processing. Install it with `pip install opencv-python`."
+    ) from e
+
+try:
+    import numpy as np
+except ImportError as e:
+    raise ImportError(
+        "NumPy is required for numerical operations. Install it with `pip install numpy`."
+    ) from e
 from PIL import Image
 from typing import List, Tuple, Optional, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from functools import lru_cache
 import logging
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError as e:
+    raise ImportError(
+        "tqdm is required for progress display. Install it with `pip install tqdm`."
+    ) from e
 import base64
 import gzip
 

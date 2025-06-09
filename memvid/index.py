@@ -3,14 +3,36 @@ Index management for embeddings and vector search
 """
 
 import json
-import numpy as np
-import faiss
-from sentence_transformers import SentenceTransformer
+try:
+    import numpy as np
+except ImportError as e:
+    raise ImportError(
+        "NumPy is required for numerical operations. Install it with `pip install numpy`."
+    ) from e
+
+try:
+    import faiss
+except ImportError as e:
+    raise ImportError(
+        "faiss is required for vector indexing. Install it with `pip install faiss-cpu` or `faiss-gpu`."
+    ) from e
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError as e:
+    raise ImportError(
+        "sentence-transformers is required for text embeddings. Install it with `pip install sentence-transformers`."
+    ) from e
 from typing import List, Dict, Any, Tuple, Optional
 import logging
 from pathlib import Path
 import pickle
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError as e:
+    raise ImportError(
+        "tqdm is required for progress display. Install it with `pip install tqdm`."
+    ) from e
 
 from .config import get_default_config
 
@@ -170,10 +192,17 @@ class IndexManager:
         total_batches = (len(chunks) + batch_size - 1) // batch_size
 
         if show_progress:
-            from tqdm import tqdm
-            batch_iter = tqdm(range(0, len(chunks), batch_size),
-                              desc="Processing chunks in batches",
-                              total=total_batches)
+            try:
+                from tqdm import tqdm
+            except ImportError as e:
+                raise ImportError(
+                    "tqdm is required for progress display. Install it with `pip install tqdm`."
+                ) from e
+            batch_iter = tqdm(
+                range(0, len(chunks), batch_size),
+                desc="Processing chunks in batches",
+                total=total_batches,
+            )
         else:
             batch_iter = range(0, len(chunks), batch_size)
 

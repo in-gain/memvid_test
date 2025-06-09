@@ -9,9 +9,26 @@ import tempfile
 import warnings
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from tqdm import tqdm
-import cv2
-import numpy as np
+try:
+    from tqdm import tqdm
+except ImportError as e:
+    raise ImportError(
+        "tqdm is required for progress display. Install it with `pip install tqdm`."
+    ) from e
+
+try:
+    import cv2
+except ImportError as e:
+    raise ImportError(
+        "OpenCV (cv2) is required for video processing. Install it with `pip install opencv-python`."
+    ) from e
+
+try:
+    import numpy as np
+except ImportError as e:
+    raise ImportError(
+        "NumPy is required for numerical operations. Install it with `pip install numpy`."
+    ) from e
 
 from .utils import encode_to_qr, qr_to_frame, chunk_text
 from .index import IndexManager
