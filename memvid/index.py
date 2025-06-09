@@ -3,6 +3,8 @@ Index management for embeddings and vector search
 """
 
 import json
+import os
+import logging
 try:
     import numpy as np
 except ImportError as e:
@@ -17,14 +19,39 @@ except ImportError as e:
         "faiss is required for vector indexing. Install it with `pip install faiss-cpu` or `faiss-gpu`."
     ) from e
 
+logger = logging.getLogger(__name__)
+USE_DUMMY = os.getenv("MEMVID_DUMMY_EMBEDDINGS") == "1"
+
 try:
-    from sentence_transformers import SentenceTransformer
-except ImportError as e:
-    raise ImportError(
-        "sentence-transformers is required for text embeddings. Install it with `pip install sentence-transformers`."
-    ) from e
+    if not USE_DUMMY:
+        from sentence_transformers import SentenceTransformer  # type: ignore
+    else:  # pragma: no cover
+        raise ImportError("Dummy embeddings requested")
+except Exception:  # pragma: no cover - fallback for limited environments
+    import hashlib
+
+    class SentenceTransformer:  # type: ignore
+        """Fallback dummy embedding model when sentence-transformers is unavailable."""
+
+        def __init__(self, *_, **__):
+            self.dim = 384
+
+        def encode(self, texts, **_):
+            if isinstance(texts, str):
+                texts = [texts]
+            embeddings = []
+            for text in texts:
+                h = hashlib.sha256(text.encode()).digest()
+                arr = np.frombuffer(h, dtype=np.uint8).astype("float32")
+                reps = self.dim // len(arr) + 1
+                arr = np.tile(arr, reps)[: self.dim]
+                embeddings.append(arr)
+            return np.vstack(embeddings)
+
+    logger.warning(
+        "Using dummy embeddings instead of sentence-transformers."
+    )
 from typing import List, Dict, Any, Tuple, Optional
-import logging
 from pathlib import Path
 import pickle
 try:
@@ -35,8 +62,6 @@ except ImportError as e:
     ) from e
 
 from .config import get_default_config
-
-logger = logging.getLogger(__name__)
 
 
 class IndexManager:

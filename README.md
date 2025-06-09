@@ -116,6 +116,14 @@ response = chat.chat("What do you know about historical events?")
 print(response)
 ```
 
+Example output using dummy embeddings:
+```text
+Using dummy embeddings instead of sentence-transformers.
+Generating QR frames: 100% 3/3 [00:00<00:00,  6.28it/s]
+Writing video frames: 100% 3/3 [00:00<00:00, 228.95it/s]
+I couldn't find any relevant information about that topic in the knowledge base.
+```
+
 ### Building Memory from Documents
 ```python
 from memvid import MemvidEncoder

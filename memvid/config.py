@@ -140,7 +140,8 @@ def get_default_config() -> Dict[str, Any]:
         "performance": {
             "prefetch_frames": PREFETCH_FRAMES,
             "decode_timeout": DECODE_TIMEOUT,
-        }
+        },
+        "codec_parameters": codec_parameters,
     }
 
 def get_codec_parameters(codec_name=None):

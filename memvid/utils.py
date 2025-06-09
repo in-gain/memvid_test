@@ -68,6 +68,8 @@ def encode_to_qr(data: str) -> Image.Image:
     qr.make(fit=True)
     
     img = qr.make_image(fill_color=config["fill_color"], back_color=config["back_color"])
+    if hasattr(img, "get_image"):
+        img = img.get_image()
     return img
 
 
@@ -84,16 +86,29 @@ def decode_qr(image: np.ndarray) -> Optional[str]:
     try:
         # Initialize OpenCV QR code detector
         detector = cv2.QRCodeDetector()
-        
-        # Detect and decode
-        data, bbox, straight_qrcode = detector.detectAndDecode(image)
-        
+
+        # Convert to grayscale for more robust decoding
+        if image.ndim == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image
+
+        # Detect and decode via OpenCV
+        data, _, _ = detector.detectAndDecode(gray)
+        if not data:
+            try:
+                from pyzbar.pyzbar import decode as zbar_decode
+
+                results = zbar_decode(gray)
+                if results:
+                    data = results[0].data.decode()
+            except Exception as e2:  # pragma: no cover - optional dep
+                logger.warning(f"pyzbar decode failed: {e2}")
+
         if data:
-            # Check if data was compressed
             if data.startswith("GZ:"):
                 compressed_data = base64.b64decode(data[3:])
                 data = gzip.decompress(compressed_data).decode()
-            
             return data
     except Exception as e:
         logger.warning(f"QR decode failed: {e}")
@@ -265,14 +280,7 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]
         end = start + chunk_size
         chunk = text[start:end]
         
-        # Try to break at sentence boundary
-        if end < len(text):
-            last_period = chunk.rfind('.')
-            if last_period > chunk_size * 0.8:
-                end = start + last_period + 1
-                chunk = text[start:end]
-        
-        chunks.append(chunk.strip())
+        chunks.append(text[start:end].strip())
         start = end - overlap
     
     return chunks
