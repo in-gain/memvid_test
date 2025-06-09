@@ -95,3 +95,80 @@ Assistant: Based on the knowledge base, here's what I found:
 1. ても併せて提案書に記載してください.
 ...
 ```
+\n## 5. PDF RAG Demo Script
+This script allows dynamic PDF selection via command line arguments.
+We executed it with the NEDO prize program PDF and issued two search
+queries.
+
+```bash
+PYTHONPATH=. MEMVID_DUMMY_EMBEDDINGS=1 \
+    python examples/pdf_rag_demo.py \
+    --url https://www.nedo.go.jp/content/800025275.pdf \
+    --pdf data/nedo_dynamic.pdf --top_k 2 <<'Q'
+この文書の概要を教えてください
+このプロジェクトの目的は何ですか？
+Q
+```
+Actual output (truncated):
+```text
+Downloading PDF from https://www.nedo.go.jp/content/800025275.pdf...
+Saved PDF to data/nedo_dynamic.pdf
+
+✅ Index built. Enter your query (or empty to exit).
+
+> Query: この文書の概要を教えてください
+1. [ID 1 | Score 2386104.000] 発者やＡＩ提供 者※個人を含む ）と組んで応募すること とします 。具体的には 、以下の形態のいずれ でも応募することが可能です。   ➢ ユーザー と開発者が ペアを組んで ＡＩエージェントを開発・実証 する  ➢ ユーザー が内製で Ａ
+2. [ID 0 | Score 2918268.000] 1   NEDO懸賞金活用型プログラム ／GENIAC-PRIZE  ～国産基盤モデ ル等を活用した 社会課題解決 ＡＩエージェント開発 ～    １．事業趣旨１．１． 背景及び 目的  ⚫ 生成ＡＩは、生産性・付加価値の向上等を通じて
+
+> Query: このプロジェクトの目的は何ですか？
+1. [ID 5 | Score 3122292.000] 、業界全体に対してイン パクトを持つか。   ユーザー の  変革 ・ユーザーの業務プロセス改革が、効果的に実施できてい るか。事業部門・情報システム等関係部門の連携が有機的 に行われているか。    6   ・開発者とユーザーのコミュニケ
+2. [ID 7 | Score 3370236.000] ても併せて提案書に記載してください。     ４．スケジュール   ⚫ 懸賞広告： 2025年５月９日  ⚫ 応募説明会： 2025年５月26日  ➢ 応募説明会の詳細は別添を参照してください。   ⚫ 応募期間：2025年６月～９月末まで
+```
+
+### 6. LLM Integration Attempt
+The demo loads `.env` to pick up `OPENAI_API_KEY` and uses the `gpt-4o` model by default.
+However, calling the API still failed due to a connection error.
+
+```bash
+PYTHONPATH=. MEMVID_DUMMY_EMBEDDINGS=1 \
+    python examples/pdf_rag_demo.py \
+    --url https://www.nedo.go.jp/content/800025275.pdf \
+    --pdf data/nedo_llm_new.pdf --top_k 1 --use-llm --llm-model gpt-4o <<'Q'
+概要は？
+Q
+```
+Output snippet:
+```text
+Downloading PDF from https://www.nedo.go.jp/content/800025275.pdf...
+Saved PDF to data/nedo_llm_new.pdf
+
+✅ Index built. Enter your query (or empty to exit).
+
+> Query: 概要は？
+1. [ID 3 | Score 4266948.000] 事前審査 への応募が可 能となります のでご留意ください。   ➢ 応募後、事務局より開発状況のヒアリングをさせていただきます。   ➢ 提供データ    GENIACで構築している一部のデータ提供も 準備中です。各データの利用条件 等は
+LLM呼び出しに失敗しました: Connection error.
+```
+
+### 7. LLM呼び出しの再試行
+再度、OpenAI API への接続を試みましたが、以下のように `Method forbidden` エラーが表示され、
+LLM を利用した回答生成には失敗しました。
+
+```bash
+PYTHONPATH=. MEMVID_DUMMY_EMBEDDINGS=1 \
+    python examples/pdf_rag_demo.py \
+    --url https://www.nedo.go.jp/content/800025275.pdf \
+    --pdf data/nedo_new.pdf --top_k 1 --use-llm --llm-model gpt-4o <<'Q'
+概要は？
+Q
+```
+出力例:
+```text
+Downloading PDF from https://www.nedo.go.jp/content/800025275.pdf...
+Saved PDF to data/nedo_new.pdf
+
+✅ Index built. Enter your query (or empty to exit).
+
+> Query: 概要は？
+1. [ID 3 | Score 4266948.000] 事前審査 への応募が可 能となります のでご留意ください。   ➢ 応募後、事務局より開発状況のヒアリングをさせていただきます。   ➢ 提供データ    GENIACで構築している一部のデータ提供も 準備中です。各データの利用条件 等は
+LLM呼び出しに失敗しました: Method forbidden
+```
