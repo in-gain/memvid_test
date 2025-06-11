@@ -1,14 +1,17 @@
 import os
 import time
 from pathlib import Path
+
+import faiss  # type: ignore
+import numpy as np
 from dotenv import load_dotenv  # type: ignore
-from memvid import MemvidEncoder
-from memvid.index import IndexManager
 from openai import OpenAI
+from PyPDF2 import PdfReader  # type: ignore
+from sentence_transformers import SentenceTransformer
 
 PDF_URL = "https://www.ipa.go.jp/jinzai/ics/core_human_resource/final_project/2024/f55m8k0000003spo-att/f55m8k0000003svn.pdf"
 PDF_PATH = Path("data/ipa_guidelines.pdf")
-INDEX_PATH = Path("output/ipa_rag_index")
+INDEX_PATH = Path("output/ipa_rag_faiss")
 
 QUESTIONS = [
     "この資料の概要を教えてください。",
@@ -30,19 +33,29 @@ def download_pdf() -> None:
         print(f"Saved to {PDF_PATH}")
 
 
-def build_index() -> IndexManager:
-    if INDEX_PATH.with_suffix(".faiss").exists():
-        index = IndexManager()
-        index.load(str(INDEX_PATH))
-        return index
+def build_index(model: SentenceTransformer):
+    """Create or load a FAISS index from the PDF."""
+    index_file = INDEX_PATH.with_suffix(".faiss")
+    text_file = INDEX_PATH.with_suffix(".txt")
+    if index_file.exists() and text_file.exists():
+        index = faiss.read_index(str(index_file))
+        with open(text_file, "r", encoding="utf-8") as f:
+            texts = [line.rstrip("\n") for line in f]
+        return index, texts
 
-    encoder = MemvidEncoder()
-    encoder.add_pdf(str(PDF_PATH))
-    index = IndexManager()
-    index.add_chunks(encoder.chunks, list(range(len(encoder.chunks))), show_progress=False)
+    reader = PdfReader(str(PDF_PATH))
+    all_text = "\n".join(page.extract_text() or "" for page in reader.pages)
+    chunk_size = 300
+    texts = [all_text[i : i + chunk_size] for i in range(0, len(all_text), chunk_size)]
+    embeddings = model.encode(texts, show_progress_bar=False)
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(np.array(embeddings).astype("float32"))
     Path("output").mkdir(exist_ok=True)
-    index.save(str(INDEX_PATH))
-    return index
+    faiss.write_index(index, str(index_file))
+    with open(text_file, "w", encoding="utf-8") as f:
+        for t in texts:
+            f.write(t.replace("\n", " ") + "\n")
+    return index, texts
 
 
 def answer_with_llm(context: str, question: str, model: str = "gpt-4o") -> str:
@@ -55,13 +68,14 @@ def answer_with_llm(context: str, question: str, model: str = "gpt-4o") -> str:
     return response.choices[0].message.content.strip()
 
 
-def answer_questions(index: IndexManager) -> None:
+def answer_questions(index, texts, model: SentenceTransformer) -> None:
     md_lines = []
     for q in QUESTIONS:
         start = time.time()
-        results = index.search(q, top_k=8)
+        q_vec = model.encode([q])
+        distances, idxs = index.search(np.array(q_vec).astype("float32"), 8)
         retrieval_time = time.time() - start
-        context = "\n\n".join(meta["text"] for _, _, meta in results)
+        context = "\n\n".join(texts[i] for i in idxs[0])
         llm_time = 0.0
         answer = context
         if os.environ.get("OPENAI_API_KEY"):
@@ -89,8 +103,9 @@ def answer_questions(index: IndexManager) -> None:
 def main() -> None:
     load_dotenv()
     download_pdf()
-    index = build_index()
-    answer_questions(index)
+    model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    index, texts = build_index(model)
+    answer_questions(index, texts, model)
 
 
 if __name__ == "__main__":

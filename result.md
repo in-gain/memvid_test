@@ -250,10 +250,10 @@ PYTHONPATH=. MEMVID_DUMMY_EMBEDDINGS=1 python examples/ipa_doc_qa.py
 
 ## 9. 通常RAGによるQAスクリプト実行結果
 
-`examples/ipa_rag_baseline.py` を実行し、Memvid を使わずに単純なベクトル検索のみで質問に回答させました。使用した環境変数は `MEMVID_DUMMY_EMBEDDINGS=1` です。
+`examples/ipa_rag_baseline.py` を実行し、Memvid を使わずに `sentence-transformers` と `faiss` を用いたシンプルなベクトル検索で質問に回答させました。
 
 ```bash
-PYTHONPATH=. MEMVID_DUMMY_EMBEDDINGS=1 python examples/ipa_rag_baseline.py
+PYTHONPATH=. python examples/ipa_rag_baseline.py
 ```
 
 生成された `output/ipa_baseline_answers.md` の冒頭部分を以下に示します。
