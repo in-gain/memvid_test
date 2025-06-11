@@ -1,7 +1,7 @@
 import os
 import time
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 from memvid import MemvidEncoder, MemvidChat
 
 PDF_URL = "https://www.ipa.go.jp/jinzai/ics/core_human_resource/final_project/2024/f55m8k0000003spo-att/f55m8k0000003svn.pdf"
@@ -10,9 +10,9 @@ VIDEO_PATH = Path("output/ipa_memory.mp4")
 INDEX_PATH = Path("output/ipa_memory_index.json")
 
 QUESTIONS = [
-    "概要を教えてください。",
+    "この資料の概要を教えてください。",
     "生成AIを企業が利用する上で重要なことを教えてください。",
-    "今後の生成AIの成長率について教えてください。",
+    "生成AIにおけるリスク管理をどのように扱うべきですか？",
 ]
 
 def download_pdf():
@@ -38,7 +38,7 @@ def build_memory():
 
 
 def answer_questions():
-    chat = MemvidChat(str(VIDEO_PATH), str(INDEX_PATH), llm_provider="openai")
+    chat = MemvidChat(str(VIDEO_PATH), str(INDEX_PATH), llm_provider="openai",llm_model="gpt-4o",llm_api_key=os.environ.get("OPENAI_API_KEY"))
     for q in QUESTIONS:
         start = time.time()
         answer = chat.chat(q)
