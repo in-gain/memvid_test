@@ -25,3 +25,4 @@ memvid.egg-info/
 memvid.egg-info/*
 dist/memvid-*/
 
+data/ipa_guidelines.pdf
